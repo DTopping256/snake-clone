@@ -36,6 +36,8 @@ class SnakeEntity {
     private List<(int, int)> segments;
 
     // Extras for drawing
+    private int maxCellsX;
+    private int maxCellsY;
     private int gridOriginX;
     private int gridOriginY;
     private int cellSize;
@@ -48,9 +50,11 @@ class SnakeEntity {
         return [.. segments];
     }
 
-    public SnakeEntity(int startX, int startY, Direction direction, int gridOriginX, int gridOriginY, int cellSize) {
+    public SnakeEntity(int startX, int startY, Direction direction, int maxCellsX, int maxCellsY, int gridOriginX, int gridOriginY, int cellSize) {
         this.direction = direction;
         segments = new List<(int, int)>([(startX, startY)]);
+        this.maxCellsX = maxCellsX;
+        this.maxCellsY = maxCellsY;
         this.gridOriginX = gridOriginX;
         this.gridOriginY = gridOriginY;
         this.cellSize = cellSize;
@@ -132,7 +136,23 @@ class SnakeEntity {
                 throw new Exception("Invalid direction");
             }
             var (diffX, diffY) = diff;
-            segments = [.. segments.Prepend((x + diffX, y + diffY))];
+            int maxX = maxCellsX / 2;
+            int minX = -1 * maxCellsX / 2;
+            int maxY = maxCellsY / 2;
+            int minY = -1 * maxCellsY / 2;
+            int newX = x + diffX;
+            if (newX > maxX) {
+                newX = minX;
+            } else if (newX < minX) {
+                newX = maxX;
+            }
+            int newY = y + diffY;
+            if (newY > maxY) {
+                newY = minY;
+            } else if (newY < minY) {
+                newY = maxY;
+            }
+            segments = [.. segments.Prepend((newX, newY))];
 
             // Removes old tail segment 
             if (segments.Count > size) {
@@ -262,10 +282,12 @@ public class Game1 : Game
         cellSize = 30;
         maxCellsX = screen.Width / cellSize;
         maxCellsY = (screen.Height - 200) / cellSize;
+        int gridOriginX = maxCellsX / 2;
+        int gridOriginY = maxCellsY / 2;
 
         level = 1;
-        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX / 2, maxCellsY / 2, cellSize);
-        apple = new AppleEntity(snake, maxCellsX, maxCellsY, maxCellsX / 2, maxCellsY / 2, cellSize);
+        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
+        apple = new AppleEntity(snake, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
         base.Initialize();
     }
 
