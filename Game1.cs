@@ -64,9 +64,9 @@ class SnakeEntity {
             var (x, y) = segments[i];
             vectorStrings[i] = "(" + x.ToString() + ", " + y.ToString() + ")";
         }
-        debugMessage += "Size: " + size.ToString();
-        debugMessage += "\nSpeed multiplier: " + speedMultiplier.ToString();
-        debugMessage += "\nSegments: " + string.Join(", ", vectorStrings);
+        debugMessage += "\n\tSize: " + size.ToString();
+        debugMessage += "\n\tSpeed multiplier: " + speedMultiplier.ToString();
+        debugMessage += "\n\tSegments: " + string.Join(", ", vectorStrings);
         return debugMessage;
     }
 
@@ -184,7 +184,7 @@ class AppleEntity {
 
     public string DebugInfo() {
         var (x, y) = gridPosition;
-        return "(" + x.ToString() + ", " + y.ToString() + ")";
+        return "\n\tPosition: (" + x.ToString() + ", " + y.ToString() + ")";
     }
 
     private bool isValidPlacement(int ax, int ay) {
