@@ -257,6 +257,7 @@ public class Game1 : Game
     private int gridOriginX;
     private int gridOriginY;
     private int level;
+    private bool gameOver;
 
     public Game1()
     {
@@ -268,10 +269,28 @@ public class Game1 : Game
         IsFixedTimeStep = true;
     }
 
+    private bool hasSnakeHeadCollidedWithSelf() {
+        List<(int, int)> segments = snake.GetSegments();
+        var (hx, hy) = segments[0];
+        
+        for (int i = 1; i < segments.Count; i++) {
+            var (bx, by) = segments[i];
+            if (hx == bx && hy == by) return true;
+        }
+        return false;
+    }
+
     private bool hasSnakeHeadCollidedWithApple() {
         var (sx, sy) = snake.GetSegments()[0];
         var (ax, ay) = apple.Position();
         return sx == ax && sy == ay;
+    }
+
+    private void SetupNewGameState() {
+        level = 1;
+        gameOver = false;
+        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
+        apple = new AppleEntity(snake, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
     }
 
     protected override void Initialize()
@@ -286,9 +305,7 @@ public class Game1 : Game
         gridOriginX = maxCellsX / 2;
         gridOriginY = maxCellsY / 2;
 
-        level = 1;
-        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
-        apple = new AppleEntity(snake, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
+        SetupNewGameState();
         base.Initialize();
     }
 
@@ -317,12 +334,23 @@ public class Game1 : Game
             Debug.WriteLine("Apple state: " + apple.DebugInfo());
         }
 
-        snake.Update(snakeSpeed);
+        if (gameOver && kb.IsKeyClicked(Keys.Enter))
+        {
+            SetupNewGameState();
+        }
 
-        if (hasSnakeHeadCollidedWithApple()) {
-            apple.Move();
-            snake.IncreaseDifficulty(level);
-            level++;
+        if (!gameOver) {
+            snake.Update(snakeSpeed);
+
+            if (hasSnakeHeadCollidedWithSelf()) {
+                gameOver = true;
+            }
+
+            if (hasSnakeHeadCollidedWithApple()) {
+                apple.Move();
+                snake.IncreaseDifficulty(level);
+                level++;
+            }
         }
 
         base.Update(gameTime);
@@ -333,14 +361,18 @@ public class Game1 : Game
         screen.Set();
         GraphicsDevice.Clear(Color.Black);
 
-        sprites.Begin();
-        sprites.DrawString(font, "Apples: " + level.ToString(), new Vector2(gridOriginX * cellSize, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
-        sprites.End();
-
         shapes.Begin();
         snake.Draw(shapes);
         apple.Draw(shapes);
         shapes.End();
+
+        sprites.Begin();
+        if (gameOver) {
+            sprites.DrawString(font, "Game Over", new Vector2(gridOriginX * cellSize - 600, screen.Height - 80), 0, Vector2.Zero, 4f, Color.OrangeRed);
+            sprites.DrawString(font, "Press Enter to restart", new Vector2(gridOriginX * cellSize - 500, gridOriginY * cellSize - 130), 0, Vector2.Zero, 6f, Color.White);
+        }
+        sprites.DrawString(font, "Apples: " + level.ToString(), new Vector2(gridOriginX * cellSize, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
+        sprites.End();
 
         screen.Unset();
         screen.Present(sprites);
