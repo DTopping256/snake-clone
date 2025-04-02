@@ -41,8 +41,8 @@ class SnakeEntity {
     private int cellSize;
     // For creating a stepped movement
     private float cooldown;
-    private float speedMultiplier = 3;
-    private float maxSpeedMultiplier = 15;
+    private float speedMultiplier = 4;
+    private float maxSpeedMultiplier = 17.5f;
 
     public List<(int, int)> GetSegments() {
         return [.. segments];
@@ -94,9 +94,16 @@ class SnakeEntity {
         return false;
     }
 
-    public void IncreaseDifficulty() {
-        size+=3;
-        speedMultiplier += 0.4f;
+    private float GetSpeedIncrease(int level) {
+        return 2f / level + 0.2f;
+    }
+
+    public void IncreaseDifficulty(int level) {
+        size += 3;
+        speedMultiplier += GetSpeedIncrease(level);
+        if (speedMultiplier > maxSpeedMultiplier) {
+            speedMultiplier = maxSpeedMultiplier;
+        }
     }
 
     public void Update(float baseSpeed) {
@@ -228,6 +235,7 @@ public class Game1 : Game
     private int cellSize;
     private int maxCellsX;
     private int maxCellsY;
+    private int level;
 
     public Game1()
     {
@@ -255,6 +263,7 @@ public class Game1 : Game
         maxCellsX = screen.Width / cellSize;
         maxCellsY = (screen.Height - 200) / cellSize;
 
+        level = 1;
         snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX / 2, maxCellsY / 2, cellSize);
         apple = new AppleEntity(snake, maxCellsX, maxCellsY, maxCellsX / 2, maxCellsY / 2, cellSize);
         base.Initialize();
@@ -279,6 +288,7 @@ public class Game1 : Game
 
         if (kb.IsKeyClicked(Keys.D))
         {
+            Debug.WriteLine("Level: " + level.ToString());
             Debug.WriteLine("Snake state: " + snake.DebugInfo());
             Debug.WriteLine("Apple state: " + apple.DebugInfo());
         }
@@ -287,7 +297,8 @@ public class Game1 : Game
 
         if (hasSnakeHeadCollidedWithApple()) {
             apple.Move();
-            snake.IncreaseDifficulty();
+            snake.IncreaseDifficulty(level);
+            level++;
         }
 
         base.Update(gameTime);
