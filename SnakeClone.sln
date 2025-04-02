@@ -1,0 +1,30 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnakeClone", "SnakeClone.csproj", "{FE355828-3BB2-32F7-6E70-CE9862D16D66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flat", "..\cslibs\Flat\Flat.csproj", "{35DE0B46-9065-4C1A-95DA-0CEDCBD0CF55}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE355828-3BB2-32F7-6E70-CE9862D16D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE355828-3BB2-32F7-6E70-CE9862D16D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE355828-3BB2-32F7-6E70-CE9862D16D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE355828-3BB2-32F7-6E70-CE9862D16D66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35DE0B46-9065-4C1A-95DA-0CEDCBD0CF55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35DE0B46-9065-4C1A-95DA-0CEDCBD0CF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35DE0B46-9065-4C1A-95DA-0CEDCBD0CF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35DE0B46-9065-4C1A-95DA-0CEDCBD0CF55}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D995B3F7-DB36-42B4-9359-5648219F784C}
+	EndGlobalSection
+EndGlobal
