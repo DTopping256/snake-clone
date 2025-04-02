@@ -245,9 +245,8 @@ public class Game1 : Game
     private GraphicsDeviceManager graphics;
     private Screen screen;
     private Shapes shapes;
-    
-
     private Sprites sprites;
+    private SpriteFont font;
 
     private SnakeEntity snake;
     private AppleEntity apple;
@@ -255,6 +254,8 @@ public class Game1 : Game
     private int cellSize;
     private int maxCellsX;
     private int maxCellsY;
+    private int gridOriginX;
+    private int gridOriginY;
     private int level;
 
     public Game1()
@@ -282,8 +283,8 @@ public class Game1 : Game
         cellSize = 30;
         maxCellsX = screen.Width / cellSize;
         maxCellsY = (screen.Height - 200) / cellSize;
-        int gridOriginX = maxCellsX / 2;
-        int gridOriginY = maxCellsY / 2;
+        gridOriginX = maxCellsX / 2;
+        gridOriginY = maxCellsY / 2;
 
         level = 1;
         snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
@@ -293,6 +294,7 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
+        font = Content.Load<SpriteFont>("Times New Roman");
     }
 
     protected override void Update(GameTime gameTime)
@@ -330,6 +332,10 @@ public class Game1 : Game
     {
         screen.Set();
         GraphicsDevice.Clear(Color.Black);
+
+        sprites.Begin();
+        sprites.DrawString(font, "Apples: " + level.ToString(), new Vector2(gridOriginX * cellSize, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
+        sprites.End();
 
         shapes.Begin();
         snake.Draw(shapes);
