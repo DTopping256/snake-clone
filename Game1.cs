@@ -36,21 +36,25 @@ class SnakeEntity {
     private List<(int, int)> segments;
 
     // Extras for drawing
+    private int maxCellsX;
+    private int maxCellsY;
     private int gridOriginX;
     private int gridOriginY;
     private int cellSize;
     // For creating a stepped movement
     private float cooldown;
-    private float speedMultiplier = 3;
-    private float maxSpeedMultiplier = 15;
+    private float speedMultiplier = 4;
+    private float maxSpeedMultiplier = 17.5f;
 
     public List<(int, int)> GetSegments() {
         return [.. segments];
     }
 
-    public SnakeEntity(int startX, int startY, Direction direction, int gridOriginX, int gridOriginY, int cellSize) {
+    public SnakeEntity(int startX, int startY, Direction direction, int maxCellsX, int maxCellsY, int gridOriginX, int gridOriginY, int cellSize) {
         this.direction = direction;
         segments = new List<(int, int)>([(startX, startY)]);
+        this.maxCellsX = maxCellsX;
+        this.maxCellsY = maxCellsY;
         this.gridOriginX = gridOriginX;
         this.gridOriginY = gridOriginY;
         this.cellSize = cellSize;
@@ -64,9 +68,9 @@ class SnakeEntity {
             var (x, y) = segments[i];
             vectorStrings[i] = "(" + x.ToString() + ", " + y.ToString() + ")";
         }
-        debugMessage += "Size: " + size.ToString();
-        debugMessage += "\nSpeed multiplier: " + speedMultiplier.ToString();
-        debugMessage += "\nSegments: " + string.Join(", ", vectorStrings);
+        debugMessage += "\n\tSize: " + size.ToString();
+        debugMessage += "\n\tSpeed multiplier: " + speedMultiplier.ToString();
+        debugMessage += "\n\tSegments: " + string.Join(", ", vectorStrings);
         return debugMessage;
     }
 
@@ -94,9 +98,19 @@ class SnakeEntity {
         return false;
     }
 
-    public void IncreaseDifficulty() {
-        size+=3;
-        speedMultiplier += 0.4f;
+    private float GetSpeedIncrease(int x) {
+        // Step the speed progression to once every 3.
+        if (x % 3 != 2) return 0;
+        // Increase at a decreasing rate towards the baseline of 0.7.
+        return 1f / (x + 1) + 0.7f;
+    }
+
+    public void IncreaseDifficulty(int level) {
+        size += 3;
+        speedMultiplier += GetSpeedIncrease(level);
+        if (speedMultiplier > maxSpeedMultiplier) {
+            speedMultiplier = maxSpeedMultiplier;
+        }
     }
 
     public void Update(float baseSpeed) {
@@ -125,7 +139,23 @@ class SnakeEntity {
                 throw new Exception("Invalid direction");
             }
             var (diffX, diffY) = diff;
-            segments = [.. segments.Prepend((x + diffX, y + diffY))];
+            int maxX = maxCellsX / 2;
+            int minX = -1 * maxCellsX / 2;
+            int maxY = maxCellsY / 2;
+            int minY = -1 * maxCellsY / 2;
+            int newX = x + diffX;
+            if (newX > maxX) {
+                newX = minX;
+            } else if (newX < minX) {
+                newX = maxX;
+            }
+            int newY = y + diffY;
+            if (newY > maxY) {
+                newY = minY;
+            } else if (newY < minY) {
+                newY = maxY;
+            }
+            segments = [.. segments.Prepend((newX, newY))];
 
             // Removes old tail segment 
             if (segments.Count > size) {
@@ -184,7 +214,7 @@ class AppleEntity {
 
     public string DebugInfo() {
         var (x, y) = gridPosition;
-        return "(" + x.ToString() + ", " + y.ToString() + ")";
+        return "\n\tPosition: (" + x.ToString() + ", " + y.ToString() + ")";
     }
 
     private bool isValidPlacement(int ax, int ay) {
@@ -218,9 +248,8 @@ public class Game1 : Game
     private GraphicsDeviceManager graphics;
     private Screen screen;
     private Shapes shapes;
-    
-
     private Sprites sprites;
+    private SpriteFont font;
 
     private SnakeEntity snake;
     private AppleEntity apple;
@@ -228,6 +257,10 @@ public class Game1 : Game
     private int cellSize;
     private int maxCellsX;
     private int maxCellsY;
+    private int gridOriginX;
+    private int gridOriginY;
+    private int level;
+    private bool gameOver;
 
     public Game1()
     {
@@ -239,10 +272,28 @@ public class Game1 : Game
         IsFixedTimeStep = true;
     }
 
+    private bool hasSnakeHeadCollidedWithSelf() {
+        List<(int, int)> segments = snake.GetSegments();
+        var (hx, hy) = segments[0];
+        
+        for (int i = 1; i < segments.Count; i++) {
+            var (bx, by) = segments[i];
+            if (hx == bx && hy == by) return true;
+        }
+        return false;
+    }
+
     private bool hasSnakeHeadCollidedWithApple() {
         var (sx, sy) = snake.GetSegments()[0];
         var (ax, ay) = apple.Position();
         return sx == ax && sy == ay;
+    }
+
+    private void SetupNewGameState() {
+        level = 0;
+        gameOver = false;
+        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
+        apple = new AppleEntity(snake, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
     }
 
     protected override void Initialize()
@@ -254,14 +305,16 @@ public class Game1 : Game
         cellSize = 30;
         maxCellsX = screen.Width / cellSize;
         maxCellsY = (screen.Height - 200) / cellSize;
+        gridOriginX = maxCellsX / 2;
+        gridOriginY = maxCellsY / 2;
 
-        snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX / 2, maxCellsY / 2, cellSize);
-        apple = new AppleEntity(snake, maxCellsX, maxCellsY, maxCellsX / 2, maxCellsY / 2, cellSize);
+        SetupNewGameState();
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
+        font = Content.Load<SpriteFont>("Times New Roman");
     }
 
     protected override void Update(GameTime gameTime)
@@ -279,15 +332,28 @@ public class Game1 : Game
 
         if (kb.IsKeyClicked(Keys.D))
         {
+            Debug.WriteLine("Level: " + level.ToString());
             Debug.WriteLine("Snake state: " + snake.DebugInfo());
             Debug.WriteLine("Apple state: " + apple.DebugInfo());
         }
 
-        snake.Update(snakeSpeed);
+        if (gameOver && kb.IsKeyClicked(Keys.Enter))
+        {
+            SetupNewGameState();
+        }
 
-        if (hasSnakeHeadCollidedWithApple()) {
-            apple.Move();
-            snake.IncreaseDifficulty();
+        if (!gameOver) {
+            snake.Update(snakeSpeed);
+
+            if (hasSnakeHeadCollidedWithSelf()) {
+                gameOver = true;
+            }
+
+            if (hasSnakeHeadCollidedWithApple()) {
+                apple.Move();
+                snake.IncreaseDifficulty(level);
+                level++;
+            }
         }
 
         base.Update(gameTime);
@@ -302,6 +368,14 @@ public class Game1 : Game
         snake.Draw(shapes);
         apple.Draw(shapes);
         shapes.End();
+
+        sprites.Begin();
+        if (gameOver) {
+            sprites.DrawString(font, "Game Over", new Vector2(gridOriginX * cellSize - 600, screen.Height - 80), 0, Vector2.Zero, 4f, Color.OrangeRed);
+            sprites.DrawString(font, "Press Enter to restart", new Vector2(gridOriginX * cellSize - 500, gridOriginY * cellSize - 130), 0, Vector2.Zero, 6f, Color.White);
+        }
+        sprites.DrawString(font, "Apples: " + level.ToString(), new Vector2(gridOriginX * cellSize, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
+        sprites.End();
 
         screen.Unset();
         screen.Present(sprites);
