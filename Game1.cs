@@ -249,7 +249,8 @@ public class Game1 : Game
     private Screen screen;
     private Shapes shapes;
     private Sprites sprites;
-    private SpriteFont font;
+    private SpriteFont scoreFont;
+    private SpriteFont gameOverFont;
 
     private SnakeEntity snake;
     private AppleEntity apple;
@@ -314,7 +315,8 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
-        font = Content.Load<SpriteFont>("Times New Roman");
+        scoreFont = Content.Load<SpriteFont>("Score");
+        gameOverFont = Content.Load<SpriteFont>("GameOver");
     }
 
     protected override void Update(GameTime gameTime)
@@ -373,9 +375,9 @@ public class Game1 : Game
 
         sprites.Begin();
         if (gameOver) {
-            sprites.DrawString(font, "Game Over!  Press Enter to restart", new Vector2(maxCellsX * cellSize / 3, screen.Height - 80), 0, Vector2.Zero, 4f, Color.OrangeRed);
+            sprites.DrawString(gameOverFont, "Game Over!  Press Enter to restart", new Vector2(maxCellsX * cellSize / 3, screen.Height - 80), 0, Vector2.Zero, 3f, Color.OrangeRed);
         }
-        sprites.DrawString(font, "Score: " + level.ToString(), new Vector2(10, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
+        sprites.DrawString(scoreFont, "Score: " + level.ToString(), new Vector2(10, screen.Height - 80), 0, Vector2.Zero, 3f, Color.White);
         sprites.End();
 
         screen.Unset();
