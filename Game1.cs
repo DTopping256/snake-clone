@@ -98,8 +98,11 @@ class SnakeEntity {
         return false;
     }
 
-    private float GetSpeedIncrease(int level) {
-        return 2f / level + 0.2f;
+    private float GetSpeedIncrease(int x) {
+        // Step the speed progression to once every 3.
+        if (x % 3 != 2) return 0;
+        // Increase at a decreasing rate towards the baseline of 0.7.
+        return 1f / (x + 1) + 0.7f;
     }
 
     public void IncreaseDifficulty(int level) {
@@ -287,7 +290,7 @@ public class Game1 : Game
     }
 
     private void SetupNewGameState() {
-        level = 1;
+        level = 0;
         gameOver = false;
         snake = new SnakeEntity(0, 0, Direction.Right, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
         apple = new AppleEntity(snake, maxCellsX, maxCellsY, gridOriginX, gridOriginY, cellSize);
