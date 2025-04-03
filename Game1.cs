@@ -365,16 +365,17 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.Black);
 
         shapes.Begin();
+        shapes.DrawLine(0, maxCellsY * cellSize, maxCellsX * cellSize, maxCellsY * cellSize, Color.DarkSlateGray);
+        shapes.DrawLine(0, 5, maxCellsX * cellSize, 5, Color.DarkSlateGray);
         snake.Draw(shapes);
         apple.Draw(shapes);
         shapes.End();
 
         sprites.Begin();
         if (gameOver) {
-            sprites.DrawString(font, "Game Over", new Vector2(gridOriginX * cellSize - 600, screen.Height - 80), 0, Vector2.Zero, 4f, Color.OrangeRed);
-            sprites.DrawString(font, "Press Enter to restart", new Vector2(gridOriginX * cellSize - 500, gridOriginY * cellSize - 130), 0, Vector2.Zero, 6f, Color.White);
+            sprites.DrawString(font, "Game Over!  Press Enter to restart", new Vector2(maxCellsX * cellSize / 3, screen.Height - 80), 0, Vector2.Zero, 4f, Color.OrangeRed);
         }
-        sprites.DrawString(font, "Apples: " + level.ToString(), new Vector2(gridOriginX * cellSize, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
+        sprites.DrawString(font, "Score: " + level.ToString(), new Vector2(10, screen.Height - 80), 0, Vector2.Zero, 4f, Color.White);
         sprites.End();
 
         screen.Unset();
