@@ -1,3 +1,12 @@
+# Config
 .config/
+
+# Build artifacts
 bin/
 obj/
+
+# Art artifacts
+*.kra
+
+# Binary files
+*~

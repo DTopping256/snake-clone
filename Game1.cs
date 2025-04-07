@@ -26,6 +26,30 @@ class SnakeEntity {
         { Direction.Down, (0, -1) },
         { Direction.Left, (-1, 0) }
     };
+
+    private readonly Dictionary<(int, int), Direction> snakeDirectionMap = new()
+    {
+        { (0, 1), Direction.Up },
+        { (1, 0), Direction.Right },
+        { (0, -1), Direction.Down },
+        { (-1, 0), Direction.Left }
+    };
+
+    private readonly Dictionary<Direction, (int, int)> snakeTextureOriginMap = new()
+    {
+        { Direction.Up, (-5, 5) },
+        { Direction.Right, (5, 5) },
+        { Direction.Down, (5, 0) },
+        { Direction.Left, (0, -5) }
+    };
+
+    private readonly Dictionary<Direction, float> snakeRotationMap = new()
+    {
+        { Direction.Up, 3*MathHelper.PiOver2 },
+        { Direction.Right, MathHelper.Pi },
+        { Direction.Down, MathHelper.PiOver2 },
+        { Direction.Left, 0f }
+    };
     private const int START_SIZE = 8; 
     
     private readonly FlatKeyboard kb = FlatKeyboard.Instance;
@@ -72,6 +96,31 @@ class SnakeEntity {
         debugMessage += "\n\tSpeed multiplier: " + speedMultiplier.ToString();
         debugMessage += "\n\tSegments: " + string.Join(", ", vectorStrings);
         return debugMessage;
+    }
+
+    private Direction GetTailDirection() {
+        var (tailGridX, tailGridY) = segments[segments.Count - 1];
+        var (tailNeighbourGridX, tailNeighbourGridY) = segments[segments.Count - 2];
+
+        var diffX = tailNeighbourGridX - tailGridX;
+        var diffY = tailNeighbourGridY - tailGridY;
+
+        // Edge cases where the snake is looping around the screen so the tail is not adjacent to the neighbouring body cell.
+        if (Math.Abs(diffX) > 1) {
+            if (diffX > 0) {
+                return Direction.Left;
+            }
+            return Direction.Right;
+        }
+        if (Math.Abs(diffY) > 1) {
+            if (diffY > 0) {
+                return Direction.Down;
+            }
+            return Direction.Up;
+        }
+
+        // General case where the neighbouring body cell is adjacent to the tail.
+        return snakeDirectionMap[(diffX, diffY)];
     }
 
     private bool IsFacing(Direction direction) {
@@ -165,7 +214,7 @@ class SnakeEntity {
     }
 
     public void Draw(Shapes shapes) {
-        for (int i = 0; i < segments.Count; i++)
+        for (int i = 1; i < segments.Count - 1; i++)
         {
             var (x, y) = segments[i];
             x += gridOriginX;
@@ -180,6 +229,29 @@ class SnakeEntity {
             // Draw a quad with points given in clockwise order.
             shapes.DrawQuadFill(x1, y1, x1, y2, x2, y2, x2, y1, Color.Green);
         }
+    }
+
+    public void Draw(Sprites sprites, Texture2D snakeHead, Texture2D snakeTailStraight) {
+        if (segments.Count < 3) return;
+
+        int scale = cellSize;
+        Vector2 cellOrigin = Vector2.One * scale/2;
+
+        var (headGridX, headGridY) = segments[0];
+        int headAbsoluteX = (headGridX + gridOriginX) * scale + scale/2 + snakeTextureOriginMap[direction].Item1;
+        int headAbsoluteY = (headGridY + gridOriginY) * scale + scale/2 + snakeTextureOriginMap[direction].Item2;
+
+        sprites.Draw(snakeHead, new Rectangle(headAbsoluteX, headAbsoluteY, scale, scale), Color.White, snakeRotationMap[direction], cellOrigin);
+
+        var (tailGridX, tailGridY) = segments[segments.Count - 1];
+        int tailAbsoluteX = (tailGridX + gridOriginX) * scale + scale/2 + snakeTextureOriginMap[direction].Item1;
+        int tailAbsoluteY = (tailGridY + gridOriginY) * scale + scale/2 + snakeTextureOriginMap[direction].Item2;
+
+        Direction tailDirection = GetTailDirection();
+        float tailRotation = snakeRotationMap[tailDirection];
+        
+
+        sprites.Draw(snakeTailStraight, new Rectangle(tailAbsoluteX, tailAbsoluteY, scale, scale), Color.White, tailRotation, cellOrigin);
     }
 }
 
@@ -251,6 +323,8 @@ public class Game1 : Game
     private Sprites sprites;
     private SpriteFont scoreFont;
     private SpriteFont gameOverFont;
+    private Texture2D snakeHeadTexture;
+    private Texture2D snakeTailStraight;
 
     private SnakeEntity snake;
     private AppleEntity apple;
@@ -317,6 +391,8 @@ public class Game1 : Game
     {
         scoreFont = Content.Load<SpriteFont>("Score");
         gameOverFont = Content.Load<SpriteFont>("GameOver");
+        snakeHeadTexture = Content.Load<Texture2D>("SnakeHead");
+        snakeTailStraight = Content.Load<Texture2D>("SnakeTailStraight");
     }
 
     protected override void Update(GameTime gameTime)
@@ -374,6 +450,7 @@ public class Game1 : Game
         shapes.End();
 
         sprites.Begin();
+        snake.Draw(sprites, snakeHeadTexture, snakeTailStraight);
         if (gameOver) {
             sprites.DrawString(gameOverFont, "Game Over!  Press Enter to restart", new Vector2(maxCellsX * cellSize / 3, screen.Height - 80), 0, Vector2.Zero, 3f, Color.OrangeRed);
         }
